@@ -39,17 +39,7 @@ jobs:
       # Install Go dependencies (optional if using Go modules)
       - name: Install Go dependencies
         run: go mod tidy    
-      # Check Wails environment
-      - name: Run Wails Doctor
-        run: wails doctor
 
       # Build the Wails project (Wails handles frontend+backend)
       - name: Build Wails App
         run: wails build
-
-      # Optionally: Archive the build artifacts
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: wails-build
-          path: ./build  # Path to the Wails build output

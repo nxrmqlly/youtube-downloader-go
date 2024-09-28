@@ -1,0 +1,44 @@
+name: Build Wails App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Go environment (required for Wails backend)
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'  # Specify the Go version you're using
+
+      # Install Wails CLI
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+
+      # Install Go dependencies (optional if using Go modules)
+      - name: Install Go dependencies
+        run: go mod tidy
+
+      # Build the Wails project (Wails handles frontend+backend)
+      - name: Build Wails App
+        run: wails build
+
+      # Optionally: Archive the build artifacts
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: wails-build
+          path: ./build  # Path to the Wails build output

@@ -1,16 +1,19 @@
-package main
+package utils
 
 import (
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
+
+	"github.com/wader/goutubedl"
 )
 
 const YtDlpGitgubRelease = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe"
 
 // If yt-dlp isn't installed yet, download it locally.
-func GetYtDlp() {
+func getYtDlp() {
 	folderPath := "./bin-deps"
 
 	// Check if the folder exists
@@ -38,4 +41,20 @@ func GetYtDlp() {
 
 	io.Copy(out, resp.Body)
 
+}
+
+// Get yt-dlp if not exists, returns cwd and path of yt-dlp
+func YtDlSetup() (string, string) {
+	// check if ./bin-deps/yt-dlp.exe exists
+	if _, err := os.Stat("./bin-deps/yt-dlp.exe"); os.IsNotExist(err) {
+		getYtDlp()
+	}
+
+	var cwd, err = os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	goutubedl.Path = filepath.Join(cwd, "bin-deps", "yt-dlp.exe")
+
+	return cwd, goutubedl.Path
 }

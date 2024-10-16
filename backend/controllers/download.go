@@ -8,16 +8,10 @@ import (
 	"unicode"
 
 	"youtube-downloader-go/backend/models"
+	"youtube-downloader-go/backend/utils"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
-
-var youtubeRegex, _ = regexp.Compile(`^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube(?:-nocookie)?\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|live\/|v\/)?)([\w\-]+)(\S+)?$`)
-
-// Check if the url is valid youtube video URL
-func isValidYouTubeURL(url string) bool {
-	return youtubeRegex.MatchString(url)
-}
 
 func slugify(input string) string {
 	// Remove non-ASCII characters
@@ -47,12 +41,9 @@ func slugify(input string) string {
 func (a *App) DownloadVideo(opts models.DownloadOptions) (string, error) {
 	//* check if the url is valid
 
-	var url = opts.URL
+	_, ytdlpPath := utils.YtDlpSetup()
 
-	if !isValidYouTubeURL(url) {
-		err := fmt.Errorf("invalid url: %s", url)
-		return err.Error(), err
-	}
+	var url = opts.URL
 
 	pathToSave, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{Title: "Save File"})
 
@@ -78,7 +69,7 @@ func (a *App) DownloadVideo(opts models.DownloadOptions) (string, error) {
 	}
 
 	// Execute yt-dlp command
-	cmd := exec.Command("yt-dlp", cmdArgs...)
+	cmd := exec.Command(ytdlpPath, cmdArgs...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		err := fmt.Errorf("error executing yt-dlp: %v\nOutput: %s", err, string(output))

@@ -38,47 +38,52 @@ func slugify(input string) string {
 }
 
 // Download the video by the url specified
-func (a *App) DownloadVideo(opts models.DownloadOptions) (string, error) {
+func (a *App) DownloadVideo(videoInfo models.VideoInfo, opts models.DownloadOptions) (string, error) {
 	//* check if the url is valid
 
 	_, ytdlpPath := utils.YtDlpSetup()
 
-	var url = opts.URL
+	cmdArgs := []string{videoInfo.URL}
+	if opts.Type == "audio" {
+		fmt.Println("Downloading Audio")
 
-	pathToSave, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{Title: "Save File"})
+		cmdArgs = append(
+			cmdArgs,
+			"--extract-audio",
+			"--audio-format",
+			opts.Extension,
+		)
+	} else if opts.Type == "video" {
+		fmt.Println("Downloading Video")
 
+		cmdArgs = append(
+			cmdArgs,
+			"-f",
+			fmt.Sprintf("bestvideo[height<=%d]+bestaudio", opts.Resolution),
+			"--remux-video",
+			opts.Extension,
+		)
+
+	}
+
+	pathToSave, err := runtime.SaveFileDialog(
+		a.ctx, runtime.SaveDialogOptions{
+			Title:           "Save File",
+			DefaultFilename: slugify(videoInfo.Title) + "." + opts.Extension,
+		},
+	)
 	if err != nil {
-		return err.Error(), err
+		return "", fmt.Errorf("error opening save file dialog: %v", err)
 	}
 
-	cmdArgs := []string{"-o", pathToSave, url}
-
-	// Set download type
-	if opts.DownloadType == "video" {
-		cmdArgs = append(cmdArgs, "--format", fmt.Sprintf("bestvideo[ext=%s]", opts.FileType))
-	} else if opts.DownloadType == "audio" {
-		cmdArgs = append(cmdArgs, "--format", fmt.Sprintf("bestaudio[ext=%s]", opts.FileType))
-	} else {
-		err := fmt.Errorf("invalid download type: %s", opts.DownloadType)
-		return err.Error(), err
-	}
-
-	// Set resolution and quality options if provided
-	if opts.Resolution != "" {
-		cmdArgs = append(cmdArgs, "--format", fmt.Sprintf("%s+%s", opts.Resolution, opts.Quality))
-	}
-
-	// Execute yt-dlp command
+	cmdArgs = append(cmdArgs, "-o", pathToSave)
 	cmd := exec.Command(ytdlpPath, cmdArgs...)
 	output, err := cmd.CombinedOutput()
-	if err != nil {
-		err := fmt.Errorf("error executing yt-dlp: %v\nOutput: %s", err, string(output))
-		return err.Error(), err
-	}
 
-	// Print useful information
-	fmt.Printf("Downloaded %s from %s to %s\n", opts.DownloadType, url, pathToSave)
-	fmt.Println(string(output))
+	if err != nil {
+		fmt.Println(string(output))
+		return "", fmt.Errorf("error executing yt-dlp: %v\nOutput: %s", err, string(output))
+	}
 
 	return "Done downloading", nil
 }

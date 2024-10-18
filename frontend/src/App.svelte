@@ -1,48 +1,41 @@
 <script>
-import { OpenBrowser, GetVideoInfo } from "../wailsjs/go/controllers/App.js";
-import { onAccesibilityKeydown } from "./utils/accessibility.js";
+import { GetVideoInfo } from "../wailsjs/go/controllers/App.js";
+import Toast from "./components/Toast.svelte";
 import VideoModal from "./components/VideoModal.svelte";
 import ThemeSwitcher from "./components/ThemeSwitcher.svelte";
-
-let showModal = false;
-
-let modalTitle;
-let modalContent;
+import Link from "./components/Link.svelte";
 
 let url;
+let errorMessage = "";
+let videoResult;
 
-function openInBrowser(anchorUrl) {
-	OpenBrowser(anchorUrl);
-}
+let showToast = false;
+let showModal = false;
 
 function openModal() {
 	showModal = true;
 }
-
 function closeModal() {
 	showModal = false;
+}
+function openToast() {
+	showToast = true;
+}
+function closeToast() {
+	showToast = false;
 }
 
 function handleButtonClick() {
 	if (!url) return;
 
 	GetVideoInfo(url)
-		.then((videoInfo) => {
-			console.log(videoInfo);
-			if (!videoInfo.Valid) {
-				modalTitle = "Error fetching video!";
-				modalContent = "Please check your URL and try again.";
-			} else {
-				modalTitle = videoInfo.title;
-				modalContent = `Duration: ${videoInfo.duration}\nUploader: ${videoInfo.uploader}\nViews : ${videoInfo.view_count}`;
-			}
+		.then((v) => {
+			videoResult = v;
 			openModal();
 		})
-		.catch((error) => {
-			console.log(error);
-			modalTitle = "Error fetching video!";
-			modalContent = "Please check your URL and try again.";
-			openModal();
+		.catch((e) => {
+			openToast();
+			errorMessage = `${e}; Check your URL`;
 		});
 }
 </script>
@@ -58,27 +51,19 @@ function handleButtonClick() {
         <button class="btn" on:click={handleButtonClick}>►</button>
     </div>
     <footer>
-        <p>Works with <span 
-            on:keydown={onAccesibilityKeydown} 
-            on:click={() => openInBrowser("https://github.com/yt-dlp/yt-dlp")}
-            >almost anything</span>. Blazingly fast, I guess.</p>
-        <p>Made by <span
-            on:keydown={onAccesibilityKeydown}
-            on:click={() => openInBrowser("https://github.com/nxrmqlly")}
-            >@nxrmqlly</span> with
-            
-            <span
-                on:keydown={onAccesibilityKeydown}
-                on:click={() => openInBrowser("https://youtu.be/dQw4w9WgXcQ")}
-            >❤</span> using Go and Svelte</p>
+        <p>Works with <Link ref="accent-anchor" href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md">almost anything</Link>. Blazingly fast, I guess.</p>
+        <p>Made by <Link ref="accent-anchor" href="https://github.com/nxrmqlly">@nxrmqlly</Link> with <Link ref="accent-anchor" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&pp=ygUIcmlja3JvbGw%3D">❤</Link> using Go and Svelte</p>
     </footer>
 
     {#if showModal}
         <VideoModal
-            title={modalTitle} 
-            content={modalContent} 
+        videoInfo={videoResult}
             onClose={closeModal} 
         />
+    {/if}
+
+    {#if showToast}
+        <Toast message={errorMessage} onClose={closeToast} />   
     {/if}
   
 </main>
@@ -121,6 +106,8 @@ function handleButtonClick() {
     }
     .input {
         border: none;
+        background-color: var(--bg-color);
+        color: var(--fg-color);
         padding: 10px;
         width: 30rem;
         outline: none;
@@ -146,11 +133,11 @@ function handleButtonClick() {
         font-size: 12px;
         color: #787878;
     }
-    footer span {
+    :global([data-ref="accent-anchor"]) {
         color: var(--accent);
         text-decoration: none;
     }
-    footer span:hover {
+    :global([data-ref="accent-anchor"]):hover {
         cursor: pointer;
         text-decoration: underline;
     }

@@ -1,6 +1,8 @@
 :root {
 	--accent: #99667a;
 	--duo-accent: #744457;
+	--confirm-color: #5aa071;
+	--duo-confirm-color: #518060;
 }
 
 html {

@@ -12,22 +12,20 @@ import (
 func (a *App) GetVideoInfo(videoURL string) (models.VideoInfo, error) {
 	_, ytDlpPath := utils.YtDlpSetup()
 
-	cmd := exec.Command(ytDlpPath, "--dump-json", videoURL)
+	cmd := exec.Command(ytDlpPath, "-J", videoURL)
 
 	// Capture the output
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return models.VideoInfo{Valid: false}, fmt.Errorf("1 error executing yt-dlp: %w", err)
+		return models.VideoInfo{}, fmt.Errorf("yt-dlp error: %w", err)
 	}
 
 	// Parse the JSON output
 	var videoInfo models.VideoInfo
 	err = json.Unmarshal(output, &videoInfo)
 	if err != nil {
-		return models.VideoInfo{Valid: false}, fmt.Errorf("error parsing JSON: %w", err)
+		return models.VideoInfo{}, fmt.Errorf("error parsing JSON: %w", err)
 	}
-
-	videoInfo.Valid = true
 
 	return videoInfo, nil
 }

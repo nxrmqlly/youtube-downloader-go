@@ -16,9 +16,11 @@ function toggleTheme() {
 	isDarkMode = !isDarkMode;
 	if (!isDarkMode) {
 		document.documentElement.style.setProperty("--bg-color", "#100a0d");
+		document.documentElement.style.setProperty("--duo-bg-color", "#212021");
 		document.documentElement.style.setProperty("--fg-color", "#f6f3f4");
 	} else {
 		document.documentElement.style.setProperty("--bg-color", "#f6f3f4");
+		document.documentElement.style.setProperty("--duo-bg-color", "#f6f3f4");
 		document.documentElement.style.setProperty("--fg-color", "#100a0d");
 	}
 }
@@ -36,15 +38,14 @@ onMount(() => {
         top: 1rem;
         right: 1rem;
         color: var(--fg-color);
-        border: 1px solid var(--bg-color);
-        border-radius: 50%; /* Make it circular */
-        width: 50px; /* Set width */
-        height: 50px; /* Set height */
+        border-radius: 50%;        
+        width: 4rem; 
+        height: 4rem; 
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        font-size: 1.5rem; /* Increase font size for emoji */
+        font-size: 1.5rem;
     }
 
     .switcher:hover {
@@ -54,8 +55,8 @@ onMount(() => {
 
 <div class="switcher" on:click={toggleTheme} on:keydown={onAccesibilityKeydown}>
     {#if isDarkMode}
-        <i class="fas fa-moon"></i> <!-- Font Awesome moon icon -->
+        <i class="fas fa-regular fa-moon"></i>
     {:else}
-        <i class="fas fa-sun"></i> <!-- Font Awesome sun icon -->
+        <i class="fas fa-regular fa-sun"></i>
     {/if}
 </div>

@@ -1,8 +1,12 @@
 :root {
 	--accent: #99667a;
 	--duo-accent: #744457;
+
 	--confirm-color: #5aa071;
 	--duo-confirm-color: #518060;
+
+	--deny-color: #b33a3a;
+	--duo-deny-color: #8a3434;
 }
 
 html {
@@ -14,15 +18,14 @@ body {
 	margin: 0;
 	height: 100vh;
 	overflow: hidden;
-	font-family: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-		"Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-		sans-serif;
+	font-family: "Satoshi", -apple-system, BlinkMacSystemFont, "Segoe UI",
+		"Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+		"Helvetica Neue", sans-serif;
 }
 
 @font-face {
-	font-family: "Nunito";
+	font-family: "Satoshi";
 	font-style: normal;
 	font-weight: 400;
-	src: local(""), url("assets/fonts/nunito-v16-latin-regular.woff2")
-		format("woff2");
+	src: local(""), url("assets/fonts/Satoshi-Regular.woff") format("woff");
 }

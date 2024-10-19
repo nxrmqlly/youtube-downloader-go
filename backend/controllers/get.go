@@ -17,7 +17,7 @@ func (a *App) GetVideoInfo(videoURL string) (models.VideoInfo, error) {
 	// Capture the output
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return models.VideoInfo{}, fmt.Errorf("yt-dlp error: %w", err)
+		return models.VideoInfo{}, fmt.Errorf("%s; output: %s", err, output)
 	}
 
 	// Parse the JSON output

@@ -1,6 +1,7 @@
 <script>
 import { onAccesibilityKeydown } from "../utils/accessibility.js";
 import { DownloadVideo } from "../../wailsjs/go/controllers/App.js";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 
 export let onClose;
 export let videoInfo;
@@ -23,16 +24,18 @@ function formatDuration(seconds) {
 	return `${hrs > 0 ? `${hrs}h ` : ""}${mins > 0 ? `${mins}m ` : ""}${secs > 0 ? `${secs}s` : ""}`.trim();
 }
 
-const videoRes = [144, 240, 360, 480, 720, 1080, 1440, 2160, 4320];
+const videoRes = [144, 240, 360, 480, 720, 1080, 1440, 2160, 4320, 8640];
 const audioRes = -1;
 
 const videoExtOptions = ["mp4", "webm", "mkv", "avi"];
 const videoOptions = videoExtOptions.flatMap((ext) =>
-	videoRes.map((res) => ({
-		type: "video",
-		ext: ext,
-		res: res,
-	})),
+	videoRes
+		.filter((res) => res <= videoInfo.height) // Only map resolutions less than or equal to video height
+		.map((res) => ({
+			type: "video",
+			ext: ext,
+			res: res,
+		})),
 );
 
 const audioExtOptions = ["mp3", "m4a", "opus", "webm", "wav"];
@@ -60,98 +63,116 @@ let selectedOption;
         align-items: center;
     }
     .modal-content {
-        background: #f6f3f4;
-        padding: 25px;
-        border-radius: 12px;
-        width: 450px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background: var(--duo-bg-color);
+        color: var(--fg-color);
+        padding: 1.3rem;
+        border-radius: 1rem;
+        width: 45%;
         position: relative;
+        display: flex;
+        flex-direction: column;
     }
     h2 {
-        margin: 0 0 10px 0;
-        font-size: 24px;
+        margin: 0;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        text-align: start;
     }
     .thumbnail {
         width: 100%;
-        max-height: 250px;
-        border-radius: 8px;
-        margin-bottom: 15px;
+        max-height: 25rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
         object-fit: cover;
     }
     p {
-        margin: 5px 0;
+        margin: 0;
         font-size: 14px;
     }
     .dropdown {
-        margin: 15px 0;
+        margin-bottom: 1rem;
     }
     select {
         width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        font-size: 14px;
-        background-color: #f9f9f9;
+        padding: 0.8rem;
+        border: 0.1rem solid #888888;
+        border-radius: 0.3rem;
+        font-size: 0.9rem;
+        color: var(--fg-color);
+        background-color: var(--duo-bg-color);
         transition: border-color 0.2s;
     }
     select:focus {
         border-color: var(--accent);
         outline: none;
     }
-    button.download-btn {
+    .download-btn {
         background-color: var(--confirm-color);
+
+    }
+    .close-btn {
+        background-color: var(--deny-color);
+    }
+    .download-btn, .close-btn {
         color: white;
         padding: 10px 20px;
         border: none;
         border-radius: 6px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 0.9rem;
         transition: background-color 0.3s ease;
         display: block;
-        width: 100%;
+        width: 10rem;
         text-align: center;
-        margin-top: 10px;
+        margin: 0;
     }
-    button.download-btn:hover {
+    .download-btn:hover {
         background-color: var(--duo-confirm-color);
     }
-    button.close-btn {
-        position: absolute;
-        top: 0.5rem;
-        right: 0.5rem;
-        background: transparent;
-        border: none;
-        font-size: 2rem;
-        cursor: pointer;
-        color: #888;
+    .close-btn:hover {
+        background-color: var(--duo-deny-color);
     }
-    button.close-btn:hover {
-        color: #333;
-        
+
+    .button-bar {
+        display: flex;
+        justify-content: end;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .video-desc {
+        display: flex;
+        margin: 0;
+        margin-bottom: 1rem;
+        justify-content:baseline;
+        align-items: center;
+        gap: 1rem;
     }
 </style>
 
 <div class="modal" on:click={onClose} on:keydown={onAccesibilityKeydown}>
     <div class="modal-content" on:click|stopPropagation on:keydown={onAccesibilityKeydown}>
-        <button class="close-btn" on:click={onClose}>&times;</button>
-
+        
         <h2>{videoInfo.title}</h2>
+        <div class="video-desc">
+            <p><i class="fa-regular fa-user"></i> {videoInfo.uploader}</p>
+            <p><i class="fa-regular fa-clock"></i> {formatDuration(videoInfo.duration)}</p>
+            <p><i class="fa-regular fa-eye"></i> {videoInfo.view_count.toLocaleString()}</p>
+        </div>
         <img class="thumbnail" src={videoInfo.thumbnail} alt="Video thumbnail" />
-
-        <p><strong>Uploader:</strong> {videoInfo.uploader}</p>
-        <p><strong>Duration:</strong> {formatDuration(videoInfo.duration)}</p>
-        <p><strong>Views:</strong> {videoInfo.view_count.toLocaleString()}</p>
-
+        
         <div class="dropdown">
-            <label for="formatSelect"><strong>Select Format:</strong></label>
             <select bind:value={selectedOption}>
                 <option value="" disabled>Select an option</option>
                 {#each allOptions as option (option.ext + option.res)}
-                    <option value={option}>{option.ext} - {option.res === -1 ? "Audio" : option.res}{option.type === "audio" ?  " only" : ` @ ${videoInfo.fps}fps`}</option>
+                <option value={option}>{option.ext} — {option.res === -1 ? "Audio" : `${option.res}p`}{option.type === "audio" ?  " only" : ` @ ${videoInfo.fps}fps`}</option>
                 {/each}
             </select>
         </div>
-
-        <button class="download-btn" on:click={onDownloadButtonClick}>Download</button>
+        
+        <div class="button-bar">
+            <button class="download-btn" on:click={onDownloadButtonClick}>Download</button>
+            <button class="close-btn" on:click={onClose}>Close</button>
+        </div>
     </div>
 </div>

@@ -13,17 +13,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Set up Go environment (required for Wails backend)
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: '1.22' 
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
         
-      # Install required packages for Wails
       - name: Install Wails dependencies
         run: |
           sudo apt-get update
@@ -31,15 +38,11 @@ jobs:
             libgtk-3-dev \
             libwebkit2gtk-4.0-dev
 
-      # Install Wails CLI
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
-
-      # Install Go dependencies (optional if using Go modules)
       - name: Install Go dependencies
         run: go mod tidy    
 
-      # Build the Wails project (Wails handles frontend+backend)
       - name: Build Wails App
         run: wails build

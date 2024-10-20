@@ -1,49 +1,41 @@
 <script>
 import { GetVideoInfo } from "../wailsjs/go/controllers/App.js";
-import Toast from "./components/Toast.svelte";
-import "@fortawesome/fontawesome-free/css/all.min.css";
+
+import Loader from "./components/Loader.svelte";
+import ExpandableToast from "./components/ExpandableToast.svelte";
 import VideoModal from "./components/VideoModal.svelte";
 import ThemeSwitcher from "./components/ThemeSwitcher.svelte";
 import Link from "./components/Link.svelte";
 
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
 let url = "";
-let errorMessage = "";
 let videoResult;
 let loading = false;
 
-let showToast = false;
 let showModal = false;
 
-function isValidURL(string) {
-	const regex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
-	return regex.test(string);
-}
+let visibleToasts = [];
 
+// Function to open the modal
 function openModal() {
 	showModal = true;
 }
+
+// Function to close the modal
 function closeModal() {
 	showModal = false;
 }
-function openToast() {
-	showToast = true;
-}
-function closeToast() {
-	showToast = false;
-}
 
+// Function to handle form submission
 function handleSubmit(e) {
 	e.preventDefault();
 	handleButtonClick();
 }
 
+// Function to handle button click
 function handleButtonClick() {
 	if (!url) return;
-	if (!isValidURL(url)) {
-		errorMessage = "Error: Invalid URL";
-		openToast();
-		return;
-	}
 
 	loading = true;
 
@@ -53,18 +45,26 @@ function handleButtonClick() {
 			openModal();
 		})
 		.catch((e) => {
-			openToast();
-			errorMessage = e.toString();
+			// add a new toast message
+			const message = e.toString();
+			const newToast = {
+				id: Date.now(),
+				message: "Error Occurred",
+				detail: message,
+			};
+			visibleToasts = [...visibleToasts, newToast];
 		})
 		.finally(() => {
 			loading = false;
 		});
 }
+
+const handleClose = (id) => {
+	visibleToasts = visibleToasts.filter((toast) => toast.id !== id);
+};
 </script>
 
 <style>
-
-
     main {
         display: flex;
         flex-direction: column;
@@ -72,24 +72,20 @@ function handleButtonClick() {
         justify-content: center;
         height: 100dvh;
         background-color: var(--bg-color);
-
     }
     .title {
         color: var(--fg-color);
     }
-
     .title span {
         display: inline-block;
     }
-
     .title span::after{
         content: '';
         height: 0.1em;
         background: var(--accent);
         border-radius: 0.1em;
-        display: block
+        display: block;
     }
-
     .input-box {
         margin-top: 1em;
         display: flex;
@@ -97,7 +93,6 @@ function handleButtonClick() {
         border-radius: 0.1em;
         overflow: hidden;
         align-items: center;
-        /* padding: 0.5rem; */
     }
     .input {
         border: none;
@@ -115,9 +110,6 @@ function handleButtonClick() {
         color: white;
         border: none;
         padding: 0.5rem 1.25rem;
-        /* width: 4rem; */
-        /* height: 0.5rem; */
-
         transition: background-color 0.3s;
     }
     .btn:hover {
@@ -153,37 +145,65 @@ function handleButtonClick() {
         width: 1em;
         height: 1em;
     }
+    .toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end; /* Align items to the right */
+    }
 
+    .main-box {
+        height: 10%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
 </style>
 
 <main>
-<ThemeSwitcher />
+    
 
+    <ThemeSwitcher />
+    
     <h1 class="title"><span>Youtube Downloader</span></h1>
     
-    <form class="input-box" id="input" on:submit={handleSubmit}>
-        <i class="mag fa-solid fa-magnifying-glass"></i>
-        <input autocomplete="off" bind:value={url} class="input" id="name" type="text" placeholder="Enter your URL here..."/>
-        <button class="btn" type="submit" on:click={handleButtonClick} disabled={loading || !url}>
-
+    <div class="main-box">
+        <form class="input-box" id="input" on:submit={handleSubmit}>
+            <i class="mag fa-solid fa-magnifying-glass"></i>
+            <input autocomplete="off" bind:value={url} class="input" id="name" type="text" placeholder="Enter your URL here..."/>
+            <button class="btn" type="submit" disabled={loading}>
                 <i class="btn-icon fa-solid fa-chevron-right"></i>
+            </button>
+        </form>
+        {#if loading}
+            <Loader/>
+        {/if}
+    </div>
 
-        </button>
-    </form>
+    
     <footer>
         <p>Works with <Link ref="accent-anchor" href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md">almost anything</Link>. Blazingly fast, I guess.</p>
         <p>Made by <Link ref="accent-anchor" href="https://github.com/nxrmqlly">@nxrmqlly</Link> with <Link ref="accent-anchor" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&pp=ygUIcmlja3JvbGw%3D">❤</Link> using Go and Svelte</p>
     </footer>
 
+    <div class="toast-container">
+        {#each visibleToasts as toast}
+            <ExpandableToast
+                id={toast.id}
+                message={toast.message}
+                detail={toast.detail}
+                onClose={handleClose}
+            />
+        {/each}
+    </div>
+
     {#if showModal}
         <VideoModal
-        videoInfo={videoResult}
+            videoInfo={videoResult}
             onClose={closeModal} 
         />
     {/if}
-
-    {#if showToast}
-        <Toast message={errorMessage} onClose={closeToast} />   
-    {/if}
-  
 </main>

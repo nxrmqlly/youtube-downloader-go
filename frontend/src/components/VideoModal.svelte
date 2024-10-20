@@ -6,10 +6,11 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 export let onClose;
 export let videoInfo;
 
+let selectedOption;
+let currentTab = "video"; // Default tab is video
+
 function onDownloadButtonClick() {
 	if (selectedOption) {
-		console.log(selectedOption);
-
 		DownloadVideo(videoInfo, selectedOption);
 
 		onClose();
@@ -45,9 +46,11 @@ const audioOptions = audioExtOptions.map((ext) => ({
 	res: audioRes,
 }));
 
-const allOptions = [...videoOptions, ...audioOptions];
-
-let selectedOption;
+// Switch between video and audio tab and reset the selected option
+function switchTab(tab) {
+	currentTab = tab;
+	selectedOption = ""; // Reset the selected option when tab changes
+}
 </script>
 
 <style>
@@ -108,7 +111,6 @@ let selectedOption;
     }
     .download-btn {
         background-color: var(--confirm-color);
-
     }
     .close-btn {
         background-color: var(--deny-color);
@@ -148,11 +150,28 @@ let selectedOption;
         align-items: center;
         gap: 1rem;
     }
+
+    .tab-bar {
+        display: flex;
+        justify-content: start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .tab {
+        cursor: pointer;
+        padding: 0.5rem 1rem;
+        border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active {
+        border-color: var(--accent);
+        font-weight: bold;
+    }
 </style>
 
 <div class="modal" on:click={onClose} on:keydown={onAccesibilityKeydown}>
     <div class="modal-content" on:click|stopPropagation on:keydown={onAccesibilityKeydown}>
-        
         <h2>{videoInfo.title}</h2>
         <div class="video-desc">
             <p><i class="fa-regular fa-user"></i> {videoInfo.uploader}</p>
@@ -160,19 +179,46 @@ let selectedOption;
             <p><i class="fa-regular fa-eye"></i> {videoInfo.view_count.toLocaleString()}</p>
         </div>
         <img class="thumbnail" src={videoInfo.thumbnail} alt="Video thumbnail" />
-        
-        <div class="dropdown">
-            <select bind:value={selectedOption}>
-                <option value="" disabled>Select an option</option>
-                {#each allOptions as option (option.ext + option.res)}
-                <option value={option}>{option.ext} — {option.res === -1 ? "Audio" : `${option.res}p`}{option.type === "audio" ?  " only" : ` @ ${videoInfo.fps}fps`}</option>
-                {/each}
-            </select>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab {currentTab === 'video' ? 'active' : ''}" on:keydown={onAccesibilityKeydown} on:click={() => switchTab('video')}>
+                Video
+            </div>
+            <div class="tab {currentTab === 'audio' ? 'active' : ''}" on:keydown={onAccesibilityKeydown} on:click={() => switchTab('audio')}>
+                Audio
+            </div>
         </div>
-        
+
+        <!-- Content based on selected tab -->
+        <div class="dropdown">
+        {#if currentTab === "video"}
+                <select bind:value={selectedOption}>
+                    <option value="" disabled selected>Select a video option</option>
+                    {#each videoOptions as option (option.ext + option.res)}
+                        <option value={option}>
+                            {option.ext} — {option.res}p {videoInfo.fps > 0 ? ` @ ${videoInfo.fps}fps` : ""}
+                        </option>
+                    {/each}
+                </select>
+   
+        {:else if currentTab === "audio"}
+          
+                <select bind:value={selectedOption}>
+                    <option value="" disabled selected>Select an audio option</option>
+                    {#each audioOptions as option (option.ext + option.res)}
+                        <option value={option}>
+                            {option.ext} — Audio only
+                        </option>
+                    {/each}
+                </select>
+                {/if}
+            </div>
+
         <div class="button-bar">
             <button class="download-btn" on:click={onDownloadButtonClick}>Download</button>
             <button class="close-btn" on:click={onClose}>Close</button>
         </div>
     </div>
 </div>
+ 

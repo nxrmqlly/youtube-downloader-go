@@ -3,34 +3,37 @@ import { onMount } from "svelte";
 import { onAccesibilityKeydown } from "../utils/accessibility.js";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
-let isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
-window
-	.matchMedia("(prefers-color-scheme: dark)")
-	.addEventListener("change", (e) => {
-		isDarkMode = e.matches;
-		toggleTheme();
-	});
-console.log(isDarkMode);
+let isDarkMode;
 
-function toggleTheme() {
-	isDarkMode = !isDarkMode;
-	if (!isDarkMode) {
-		document.documentElement.style.setProperty("--bg-color", "#100a0d");
-		document.documentElement.style.setProperty("--duo-bg-color", "#212021");
-		document.documentElement.style.setProperty("--fg-color", "#f6f3f4");
-	} else {
-		document.documentElement.style.setProperty("--bg-color", "#f6f3f4");
-		document.documentElement.style.setProperty("--duo-bg-color", "#f6f3f4");
-		document.documentElement.style.setProperty("--fg-color", "#100a0d");
-	}
+function setTheme(theme) {
+	document.querySelector("html").setAttribute("data-theme", theme);
+	localStorage.setItem("theme", theme);
 }
 
-// sset default theme
 onMount(() => {
-	toggleTheme();
-});
-</script>
+	const savedTheme = localStorage.getItem("theme");
+	if (savedTheme) {
+		isDarkMode = savedTheme === "dark";
+	} else {
+		isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+	}
+	setTheme(isDarkMode ? "dark" : "light");
 
+	// system theme changes listening
+	window
+		.matchMedia("(prefers-color-scheme: dark)")
+		.addEventListener("change", (e) => {
+			isDarkMode = e.matches;
+			setTheme(isDarkMode ? "dark" : "light");
+		});
+});
+
+// Toggle theme function
+function toggleTheme() {
+	isDarkMode = !isDarkMode;
+	setTheme(isDarkMode ? "dark" : "light");
+}
+</script>
 
 <style>
     .switcher {

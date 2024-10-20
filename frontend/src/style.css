@@ -9,9 +9,21 @@
 	--duo-deny-color: #8a3434;
 }
 
+html[data-theme="dark"] {
+	--bg-color: #100a0d;
+	--duo-bg-color: #212021;
+
+	--fg-color: #f6f3f4;
+}
+html[data-theme="light"] {
+	--bg-color: #f6f3f4;
+	--duo-bg-color: #f6f3f4;
+
+	--fg-color: #100a0d;
+}
+
 html {
 	text-align: center;
-	color: #100a0d;
 }
 
 body {

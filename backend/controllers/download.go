@@ -78,7 +78,7 @@ func (a *App) DownloadVideo(videoInfo models.VideoInfo, opts models.DownloadOpti
 
 	cmdArgs = append(cmdArgs, "-o", pathToSave)
 	cmd := exec.Command(ytdlpPath, cmdArgs...)
-	output, err := cmd.CombinedOutput()
+	output, err := utils.RunCmd(cmd)
 
 	if err != nil {
 		fmt.Println(string(output))

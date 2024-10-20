@@ -7,7 +7,7 @@ type VideoInfo struct {
 	FPS         float32 `json:"fps"`
 	Uploader    string  `json:"uploader"`
 	UploaderURL string  `json:"uploader_url"`
-	Duration    int     `json:"duration"` // Duration in seconds
+	Duration    float32 `json:"duration"` // Duration in seconds
 	ViewCount   int     `json:"view_count"`
 	Thumbnail   string  `json:"thumbnail"`
 	Height      int     `json:"height"`

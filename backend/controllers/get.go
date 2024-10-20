@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os/exec"
 
 	"youtube-downloader-go/backend/models"
@@ -10,12 +11,18 @@ import (
 )
 
 func (a *App) GetVideoInfo(videoURL string) (models.VideoInfo, error) {
+
+	_, err := url.ParseRequestURI(videoURL)
+	if err != nil {
+		return models.VideoInfo{}, fmt.Errorf("invalid URL: %w", err)
+	}
+
 	_, ytDlpPath := utils.YtDlpSetup()
 
 	cmd := exec.Command(ytDlpPath, "-J", videoURL)
 
 	// Capture the output
-	output, err := cmd.CombinedOutput()
+	output, err := utils.RunCmd(cmd)
 	if err != nil {
 		return models.VideoInfo{}, fmt.Errorf("%s; output: %s", err, output)
 	}
